@@ -1,7 +1,10 @@
 import React, { Component } from 'react';
 import Searchbar from 'components/Searchbar/Searchbar';
-import ImageGallery from 
-
+import ImageGallery from 'components/ImageGallery';
+import Modal from 'components/Modal';
+import Button from 'components/Button';
+import ImageLoader from 'components/Loader/Loader';
+import imagesApi from './components/services/imagesApi';
 
 class App extends Component {
   state = {
@@ -89,7 +92,7 @@ class App extends Component {
           <h2 style={{ textAlign: 'center' }}>WARRNING!!! WRONG WARRNING!!!</h2>
         )}
         <ImageGallery images={images} handleBigImg={this.handleBigImg} />
-        {loading && <Loader />}
+        {loading && <ImageLoader />}
         {images.length > 0 && !loading && found && (
           <Button onClick={this.fetchImages} />
         )}
