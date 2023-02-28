@@ -17,8 +17,6 @@ class App extends Component {
     found: true,
   };
 
-  componentDidMount() {}
-
   componentDidUpdate(prevState, prevProps) {
     if (this.state.page > 2) {
       const { scrollTop, clientHeight } = document.documentElement;
@@ -30,7 +28,6 @@ class App extends Component {
 
     const prevQuery = prevState.searchQuery;
     const nextQuery = this.state.searchQuery;
-
     if (prevQuery !== nextQuery) {
       this.fetchImages();
     }
