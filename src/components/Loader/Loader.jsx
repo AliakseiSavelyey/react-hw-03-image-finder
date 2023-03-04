@@ -1,12 +1,14 @@
-import React from 'react';
-import 'react-loader-spinner/dist/loader/css/react-spinner-loader.css';
-import Loader from 'react-loader-spinner';
-import './Loader.scss';
+import './Loader.styled.js';
+import { MdOutlineCameraswitch } from 'react-icons/md';
 
-export default function ImageLoader() {
+// взяли иконку из реакт-айкон и просто ей прикрутили анимацию и дали клас
+
+function Loader() {
   return (
-    <div className={'loader'}>
-      <Loader type="ThreeDots" color="#3f511b5" height={80} width={80} />
+    <div className="wrapper">
+      <MdOutlineCameraswitch className="loader" />
     </div>
   );
 }
+
+export default Loader;

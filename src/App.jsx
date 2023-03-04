@@ -1,102 +1,139 @@
-import React, { Component } from 'react';
-import Searchbar from 'components/Searchbar/Searchbar';
-import ImageGallery from 'components/ImageGallery';
-import Modal from 'components/Modal';
-import Button from 'components/Button';
-import ImageLoader from 'components/Loader/Loader';
+import { Component } from 'react';
 import imagesApi from './components/services/imagesApi';
+import Searchbar from 'components/Searchbar';
+import Loader from 'components/Loader/Loader';
+import Button from 'components/Button';
+import ImageGallery from 'components/ImageGallery';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
-class App extends Component {
+export default class App extends Component {
   state = {
-    searchQuery: '',
+    searchImage: '',
+    error: null,
+    // статус - ідле -ничего не делает, простой - стоит на месте
+    status: 'idle',
     images: [],
     page: 1,
-    largeImg: '',
-    error: null,
-    loading: false,
-    found: true,
   };
 
-  componentDidUpdate(prevState, prevProps) {
-    if (this.state.page > 2) {
-      const { scrollTop, clientHeight } = document.documentElement;
-      window.scrollTo({
-        top: scrollTop + clientHeight - 165,
-        behavior: 'smooth',
-      });
+  componentDidUpdate(prevProps, prevState) {
+    const prevSearch = prevState.searchImage;
+    const nextSearch = this.state.searchImage;
+    const prevPage = prevState.page;
+    const nextPage = this.state.page;
+
+    if (prevSearch !== nextSearch) {
+      // console.log('змінився запрос');
+      this.loadImagesBySearch(nextSearch);
+      // this.setState({ searchImage: '' });
+      // this.resetImages();
+      // this.resetPage();
     }
 
-    const prevQuery = prevState.searchQuery;
-    const nextQuery = this.state.searchQuery;
-    if (prevQuery !== nextQuery) {
-      this.fetchImages();
+    if (prevPage < nextPage) {
+      // console.log('змінився номер сторінки');
+      this.loadMoreImages(nextPage);
     }
+    this.scrollToBottom();
   }
 
-  fetchImages = () => {
-    const { searchQuery, page } = this.state;
-    this.setState({ loading: true });
+  handleFormSubmit = searchImage => {
+    console.log(searchImage);
+    this.resetPage();
+    this.setState({ searchImage: searchImage });
+  };
+  // функція для опрацювання запиту за введеним значенням
+  loadImagesBySearch(searchImage) {
+    this.setState({ status: 'pending', images: [] });
+    const { page } = this.state;
     imagesApi
-      .fetchImagesWithQuery(searchQuery, page)
-      .then(images => {
-        if (images.length === 0) {
-          this.setState({ found: false });
-        } else {
-          this.setState(prevState => ({
-            images: [...prevState.images, ...images],
-            page: prevState.page + 1,
-            found: true,
-          }));
-        }
+      .fetchPixabayImage(searchImage, page)
+      .then(imagesObj => {
+        // console.log(images);
+        if (imagesObj.hits.length === 0) {
+          toast.error(
+            'Sorry, there are no images matching your search query. Please try again.',
+          );
+          this.setState({ status: 'idle' });
+        } else this.setState({ images: imagesObj.hits, status: 'resolved' });
       })
-      .catch(error => this.setState({ error }))
-      .finally(() => this.setState({ loading: false }));
-    if (page > 1) {
-      const { scrollHeight } = document.documentElement;
-      window.scrollTo({
-        top: scrollHeight,
-        behavior: 'smooth',
-      });
-    }
-  };
+      .catch(error => this.setState({ error, status: 'rejected' }));
+    //  в кінці запиту змінюємо лоадінг на фолс, щоб не видно було
+    // .finally(() => this.setState({ loading: false }));
+  }
+  // функція для опрацювання запиту при натисненні кнопки -показати більше
+  // Load more images by current search query
+  loadMoreImages(page) {
+    this.setState({ status: 'pending' });
+    const { images, searchImage } = this.state;
+    imagesApi
+      .fetchPixabayImage(searchImage, page)
+      // якщо все добре, то ми міняємо статус на резолвд
+      .then(imagesObj => {
+        // console.log(response);
+        if (imagesObj.hits.length === 0) {
+          toast.error(
+            'Sorry, there are no more images matching your search query.',
+          );
+          this.setState({ status: 'idle' });
+        } else
+          this.setState({
+            images: [...images, ...imagesObj.hits],
+            status: 'resolved',
+          });
+      })
+      // якщо з помилкою, то ми міняємо статус на реджектед
+      .catch(error => this.setState({ error, status: 'rejected' }));
+  }
+  resetImages() {
+    this.setState({ images: [] });
+  }
+  resetPage() {
+    // console.log(this.state.page);
+    this.setState({ page: 1 });
+  }
 
-  handleSearchFormSubmit = query => {
-    this.setState({
-      searchQuery: query,
-      page: 1,
-      images: [],
+  onButtonClick() {
+    // console.log('Видно кнопку');
+    this.setState(prevState => ({
+      page: prevState.page + 1,
+    }));
+  }
+  scrollToBottom() {
+    // const { height: cardHeight } = document
+    //   .querySelector('.ImageGallery')
+    //   .firstElementChild.getBoundingClientRect();
+    // window.scrollBy({
+    //   // top: cardHeight * 40,
+    //   top: cardHeight * 1,
+    //   behavior: 'smooth',
+    // });
+
+    window.scrollTo({
+      top: document.documentElement.scrollHeight,
+      behavior: 'smooth',
     });
-  };
-
-  handleBigImg = largeImg => {
-    this.setState({ largeImg });
-    document.body.classList.add('modal-isOpen');
-  };
-
-  closeModal = () => {
-    this.setState({
-      largeImg: '',
-    });
-    document.body.classList.remove('modal-isOpen');
-  };
-
+  }
   render() {
-    const { images, loading, error, found, largeImg } = this.state;
+    const { images, status, error } = this.state;
     return (
-      <>
-        <Searchbar onSubmit={this.handleSearchFormSubmit} />
-        {(error || !found) && !images.length && (
-          <h2 style={{ textAlign: 'center' }}>WARRNING!!! WRONG WARRNING!!!</h2>
+      <div>
+        <Searchbar inSubmit={this.handleFormSubmit} />
+        <ToastContainer autoClose={4000} />
+        {images.length !== 0 && <ImageGallery images={images} />}
+        {status === 'pending' && <Loader />}
+        {status === 'rejected' && (
+          <div role="alert">
+            <p>{error.message}</p>
+          </div>
         )}
-        <ImageGallery images={images} handleBigImg={this.handleBigImg} />
-        {loading && <ImageLoader />}
-        {images.length > 0 && !loading && found && (
-          <Button onClick={this.fetchImages} />
+        {status === 'resolved' && (
+          <div>
+            <Button onClick={() => this.onButtonClick()} />
+          </div>
         )}
-        {largeImg && <Modal largeImg={largeImg} closeModal={this.closeModal} />}
-      </>
+      </div>
     );
   }
 }
-
-export default App;

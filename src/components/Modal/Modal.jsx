@@ -1,6 +1,9 @@
-import React, { Component } from 'react';
-import './Modal.scss';
 import PropTypes from 'prop-types';
+import { Component } from 'react';
+import { createPortal } from 'react-dom';
+import './Modal.scss';
+
+const modalRoot = document.querySelector('#modal-root');
 
 class Modal extends Component {
   static propTypes = {
@@ -25,12 +28,18 @@ class Modal extends Component {
   };
 
   render() {
-    return (
+    return createPortal(
       <div className="Overlay">
         <div className="Modal">
-          <img src={this.props.largeImg} alt="" className="Img" />
+          <img
+            src={this.props.largeImg}
+            alt=""
+            className="Img"
+            loading="lazy"
+          />
         </div>
-      </div>
+      </div>,
+      modalRoot,
     );
   }
 }
