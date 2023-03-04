@@ -1,11 +1,13 @@
 import { Component } from 'react';
-import imagesApi from './components/services/imagesApi';
-import Searchbar from 'components/Searchbar';
-import Loader from 'components/Loader/Loader';
-import Button from 'components/Button';
-import ImageGallery from 'components/ImageGallery';
+import pixabayAPI from '../services/pixabay-api';
+// import FetchPixabayImage from '../services/pixabay-api'
+import SearchBar from 'components/Searchbar';
+import Loader from './Loader';
+import ButtonLoadMore from './Button';
+import PixabayImageGallery from './ImageGallery';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+// import * as Scroll from 'react-scroll';
 
 export default class App extends Component {
   state = {
@@ -47,13 +49,13 @@ export default class App extends Component {
   loadImagesBySearch(searchImage) {
     this.setState({ status: 'pending', images: [] });
     const { page } = this.state;
-    imagesApi
+    pixabayAPI
       .fetchPixabayImage(searchImage, page)
       .then(imagesObj => {
         // console.log(images);
         if (imagesObj.hits.length === 0) {
           toast.error(
-            'Sorry, there are no images matching your search query. Please try again.',
+            'Sorry, there are no images matching your search query. Please try again.'
           );
           this.setState({ status: 'idle' });
         } else this.setState({ images: imagesObj.hits, status: 'resolved' });
@@ -67,14 +69,14 @@ export default class App extends Component {
   loadMoreImages(page) {
     this.setState({ status: 'pending' });
     const { images, searchImage } = this.state;
-    imagesApi
+    pixabayAPI
       .fetchPixabayImage(searchImage, page)
       // якщо все добре, то ми міняємо статус на резолвд
       .then(imagesObj => {
         // console.log(response);
         if (imagesObj.hits.length === 0) {
           toast.error(
-            'Sorry, there are no more images matching your search query.',
+            'Sorry, there are no more images matching your search query.'
           );
           this.setState({ status: 'idle' });
         } else
@@ -119,10 +121,14 @@ export default class App extends Component {
     const { images, status, error } = this.state;
     return (
       <div>
-        <Searchbar inSubmit={this.handleFormSubmit} />
+        <SearchBar inSubmit={this.handleFormSubmit} />
         <ToastContainer autoClose={4000} />
-        {images.length !== 0 && <ImageGallery images={images} />}
-        {status === 'pending' && <Loader />}
+        {images.length !== 0 && <PixabayImageGallery images={images} />}
+        {status === 'pending' && (
+          <div>
+            <Loader images={images} />
+          </div>
+        )}
         {status === 'rejected' && (
           <div role="alert">
             <p>{error.message}</p>
@@ -130,7 +136,7 @@ export default class App extends Component {
         )}
         {status === 'resolved' && (
           <div>
-            <Button onClick={() => this.onButtonClick()} />
+            <ButtonLoadMore onClick={() => this.onButtonClick()} />
           </div>
         )}
       </div>

@@ -1,14 +1,13 @@
 import React, { Component } from 'react';
-import './ImageGalleryItem.scss';
 import PropTypes from 'prop-types';
+
 import { ImageItem, ImageGalleryItemImage } from './ImageGalleryItem.styled.js';
-import Modal from '../../Modal';
+import Modal from '../Modal';
 
 export default class ImageGalleryItem extends Component {
   state = {
     showModal: false,
   };
-
   toggleModal = () => {
     this.setState(({ showModal }) => ({
       showModal: !showModal,
@@ -17,7 +16,7 @@ export default class ImageGalleryItem extends Component {
   render() {
     const { showModal } = this.state;
     const {
-      image: { tags, webformatURL, largeImageURL },
+      image: { webformatURL, tags, largeImageURL },
     } = this.props;
     return (
       <>

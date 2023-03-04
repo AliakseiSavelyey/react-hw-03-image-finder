@@ -1,14 +1,18 @@
 import './Loader.styled.js';
-import { MdOutlineCameraswitch } from 'react-icons/md';
+import { SpinnerEl, SpinnerContainer } from './Loader.styled.js';
 
 // взяли иконку из реакт-айкон и просто ей прикрутили анимацию и дали клас
+import { ImSpinner9 } from 'react-icons/im';
 
-function Loader() {
+export default function Loader() {
   return (
-    <div className="wrapper">
-      <MdOutlineCameraswitch className="loader" />
+    <div role="alert">
+      <SpinnerContainer>
+        <SpinnerEl>
+          <ImSpinner9 size="32" />
+        </SpinnerEl>
+        Loading...
+      </SpinnerContainer>
     </div>
   );
 }
-
-export default Loader;
